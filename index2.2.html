@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>首页</title>
+    <link rel="icon" href="titleLogo.PNG" sizes="32x32">
+    <link rel="stylesheet" type="text/css" href="bootstrap.min.css">
+    <script src="jquery.min.js"></script>
+    <script src="bootstrap.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="mycss.css">
+</head>
+<body>
+    <div class="container">
+        <br><br>
+        <div class="row">
+                <div class="col-md-2" style=" padding: 0px">
+                    <img src="logo.PNG" style="height: 33px;width: 110px;margin: auto" class="img-responsive"></div>
+                <div class="col-md-10">
+                    <div  class="col-md-10" style=" padding: 0px"><input id="div1" placeholder="输入搜索内容......"/></div>
+                    <div  class="col-md-2" style=" padding: 0px">
+                        <button type="button" id="search_Button" class="btn btn-info" style="height: 36px;width: 112px;border-radius:0px 10px 10px 0px;">
+                        <span class="buttonText">搜索</span>
+                    </button>
+                    </div>
+                </div>
+        </div>
+        <br>
+        <div class="row">
+            <div class="col-md-10">
+                    <form class="bs-example bs-example-form" role="form">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="input-group">
+                                    <div class="input-group-btn">
+                                        <button type="button" style="background-color: #c4c7ce" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+                                            <span class="buttonText">查询条件</span>
+                                            <span class="caret"></span>
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            <li>
+                                                <p title="article" onmouseover="this.className='onover'" onmouseout="this.className='outover'" onclick="changes($(this).text())">论文</p>
+                                            </li>
+                                            <li>
+                                                <p title="words" onmouseover="this.className='onover'" onmouseout="this.className='outover'" onclick="changes($(this).text())">词语</p>
+                                            </li>
+                                            <li>
+                                                <p title="author" onmouseover="this.className='onover'" onmouseout="this.className='outover'" onclick="changes($(this).text())">作者</p>
+                                            </li>
+                                        </ul>
+                                    </div><!-- /btn-group -->
+                                    <input type="text" id="div2" class="form-control" style="width: 100%">
+                                    <span class="input-group-btn">
+                                         <button class="btn btn-default" type="button" id="detailSearch_button">Go</button>
+                                    </span>
+                                </div><!-- /input-group -->
+                            </div><!-- /.col-lg-6 -->
+                        </div>
+                    </form>
+            </div>
+        </div>
+        <div class="row" id="context">
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <div id="page"></div>
+            </div>
+        </div>
+        <br>
+    </div>
+
+    <img src="end.PNG" width="100%" height="109" style="margin: auto;bottom: 0px;position: absolute">
+
+
+</body>
+<script type="text/javascript">
+    //处理高亮显示,没有搜索时会重新刷新页面
+    const contexts = document.getElementById("context");//按照id名字获取到DOM
+    const searchText=document.getElementById("div1");
+    const buttonHandle=document.getElementById("search_Button");
+    buttonHandle.onclick=function () {
+        const val=searchText.value;
+        if(val){
+           let findContexts=$('#context').html().split(val);
+           contexts.innerHTML=findContexts.join('<span style="color: red">'+val+'</span>');//高亮显示为红色
+        }else{
+            window.location.reload();
+        }
+    }
+
+    //处理分页
+   var pageData=[
+       {
+           href:"https://fanyi.baidu.com/?aldtype=16047#auto/zh",
+           title:"标题啊啵踩顶呃1",
+           content:"啊啊啊啊啊啊啊啊啊啊啊啊啊",
+           address:"http://www.zuowen.com/e/20190903/5d6de02877f8f.shtml"
+       },
+       {
+           href:"https://baike.baidu.com/item/%E7%99%BE%E5%BA%A6%E7%BF%BB%E8%AF%91/10607809?fr=aladdin",
+           title:"标题啊啵踩顶呃2",
+           content:"啵啵啵啵啊啵啵啵啵啵啵啵啵啵啵宝宝",
+           address:"http://www.zuowen.com/e/20190903/5d6de02877f8f.shtml"
+       },
+       {
+           href:"https://api.fanyi.baidu.com/",
+           title:"标题啊啵踩顶呃3",
+           content:"踩踩踩踩踩踩踩踩踩踩踩踩踩踩踩踩踩踩从",
+           address:"http://www.zuowen.com/e/20190903/5d6de02877f8f.shtml"
+       },
+       {
+           href:"https://xin.baidu.com/company_detail_28783255028393?rq=es&pd=ee&from=ps",
+           title:"标题标题啊啵踩顶呃4",
+           content:"顶顶顶顶顶顶顶顶顶顶顶顶",
+           address:"http://www.zuowen.com/e/20190903/5d6de02877f8f.shtml"
+       },
+       {
+           href:"https://www.baidu.com",
+           title:"标题标题啊啵踩顶呃5",
+           content:"呃呃呃呃呃呃呃呃呃呃",
+           address:"http://www.zuowen.com/e/20190903/5d6de02877f8f.shtml"
+       }
+   ];
+    var html_Data=[];
+    var detail_html=[];
+    var PageSize=2;//设置每页示数目
+    var currentPage =1;//当前页，默认为1
+    var Count;//记录条数
+    var PageCount;//计算总页数
+    $(function(){
+        //遍历数据进行展示
+        for(let i=0;i<pageData.length;i++){
+            let data='<ul class="list-group"><li class="my-list-group-item"><h3>'+pageData[i].title+'</h3></li>'+
+                '<li class="my-list-group-item"><p>'+pageData[i].content+'</p></li>'+
+                '<li class="my-list-group-item"><a href="'+pageData[i].href+'">'+pageData[i].address+'</a>—<a><small>'+"百度快照"+'</small></a></li></ul>';
+            html_Data.push(data);
+        };
+        Count=html_Data.length;
+        PageCount=Math.ceil(Count/PageSize);
+        //简单的分页按钮
+        for(let i=1;i<=PageCount;i++){
+            let pageN='<a style="color: #8b88bb;border: 1px solid #6786c6;font-size: 16px;padding: 10px 10px;" href="#" selectPage="'+i+'">'+i+'</a>&nbsp;&nbsp;';
+            $('#page').append(pageN);
+        }
+        //显示默认页（第一页）
+        for(let i=(currentPage-1)*PageSize;i<PageSize*currentPage;i++){
+            $('#context').append(html_Data[i]);
+        }
+        //显示选择页的内容
+        $('a').click(function(){
+            let selectPage=$(this).attr('selectPage');
+            $('#context').html('');
+            for(let i=(selectPage-1)*PageSize;i<PageSize*selectPage;i++){
+                $('#context').append(html_Data[i]);
+            }
+        });
+    });
+
+    //处理下拉搜索
+    function changes(a) {
+        $('.buttonText').text(a)
+    }
+    //处理根据下拉进行搜索
+    document.getElementById('detailSearch_button').onclick=function() {
+        //获取输入框内容
+        const detail_search=document.getElementById("div2");
+        const detail_search_text=detail_search.value;
+        //临时数组清空
+        detail_html.length=0;
+        $('#context').html("");
+        //根据条件重新构造临时数组的数据
+        for (let item=0;item<pageData.length;item++){
+            if (pageData[item].content.indexOf(detail_search_text)!=-1){
+                let data='<ul class="list-group"><li class="my-list-group-item"><h3>'+pageData[item].title+'</h3></li>'+
+                    '<li class="my-list-group-item"><p>'+pageData[item].content+'</p></li>'+
+                    '<li class="my-list-group-item"><a href="'+pageData[item].href+'">'+pageData[item].address+'</a>—<a><small>'+"百度快照"+'</small></a></li></ul>';
+                detail_html.push(data);
+            }
+        }
+        //重新计算页数和生成按钮
+        Count=detail_html.length;
+        PageCount=Math.ceil(Count/PageSize);
+        $('#page').html("");
+        for(let i=1;i<=PageCount;i++){
+            let pageN='<a style="color: #8b88bb;border: 1px solid #6786c6;font-size: 16px;padding: 10px 10px;" href="#" selectPage="'+i+'">'+i+'</a>&nbsp;&nbsp;';
+            $('#page').append(pageN);
+        }
+        //条件搜索后 显示默认页（第一页）
+        for(let i=(currentPage-1)*PageSize;i<PageSize*currentPage;i++){
+            $('#context').append(detail_html[i]);
+        }
+        //条件搜索后 显示选择页的内容
+        $('a').click(function(){
+            let selectPage=$(this).attr('selectPage');
+            $('#context').html('');
+            for(let i=(selectPage-1)*PageSize;i<PageSize*selectPage;i++){
+                $('#context').append(detail_html[i]);
+            }
+        });
+    }
+</script>
+</html>

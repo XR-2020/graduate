@@ -1,0 +1,39 @@
+#div1{
+    border: 2px solid #c4c7ce;
+    border-radius: 10px 0px 0px 10px;
+    height: 36px;
+    width: 100%;
+    padding-left: 10px;
+    font-family:"楷体,宋体";
+    font-size: large;
+}
+.my-list-group-item{
+    position: relative;
+    display: block;
+    padding: 9px 16px;
+    margin-bottom: -1px;
+    background-color: #fff;
+}
+h3{
+    color: blue;
+}
+p{
+    font-size: large;
+}
+a:link,a:hover{
+    font-style: italic;
+    color: #84cd5f;
+}
+a:visited{
+    color: #ac84ac;
+}
+small{
+    color: gray;
+    font-size: smaller;
+}
+.onover{
+    background-color: grey;
+}
+.outover{
+    background-color: white;
+}
