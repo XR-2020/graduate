@@ -12,7 +12,7 @@ def ssw(img,scale=500,sigma=0.7,min_size=20):
         # 重复的不要
         if r['rect'] in candidates:
             continue
-        # 太小和太大的不要
+        # 太大的不要
         if r['size'] < 2000:
             continue
         #x, y, w, h = r['rect']
@@ -49,7 +49,7 @@ def ssw(img,scale=500,sigma=0.7,min_size=20):
             #窗口过滤完之后的数量
     num_array=set(num_array)
     '''
-    return candidates
+    return list(candidates)
 
 def feature_mapping(regions):
     #如果保留pooling5，也就是映射到7*7
@@ -57,21 +57,30 @@ def feature_mapping(regions):
     #for ele in regions:
     #    mapping.append((math.floor(ele[0]/32)+1,math.floor(ele[1]/32)+1,max(math.ceil((ele[0]+ele[2])/32)-1-(math.floor(ele[0]/32)+1),0),
     #    max(0,math.ceil((ele[1]+ele[3])/32)-1-(math.floor(ele[1]/32)+1))))
-    #如果不保留pooling5，也就是映射到14*14  
+
+    '''
+        图片原尺寸是224 * 224，经过vgg16的五层卷积图像缩小成了14 *14的
+        而在ssw这个函数中预测的bounding box的尺寸还是原图224 * 224的
+        所以需要/16对bounding box进行位置以及大小转换，转换成14 * 14对应的bounding box
+    '''
+    #如果不保留pooling5，也就是映射到14*14
     for ele in regions:
         mapping.append((math.floor(ele[0]/16)+1,math.floor(ele[1]/16)+1,math.ceil((ele[0]+ele[2])/16)-1-(math.floor(ele[0]/16)+1),
         math.ceil((ele[1]+ele[3])/16)-1-(math.floor(ele[1]/16)+1)))   
     mapping=list(set(mapping))
     return mapping
 
-'''
-img=cv2.imread('./JPEGImages/2009_004858.jpg')
-print(img.size)
-a=ssw(img)
-b=feature_mapping(a)
-tensor=torch.from_numpy(np.array(b))
-print(tensor)
-print(tensor.shape)
-'''
+
+# img=cv2.imread('./JPEGImages/000005.jpg')
+# plt.imshow(img)    # 显示图像
+# plt.show()
+# print(img.size)
+# a=ssw(img)
+# b=feature_mapping(a)
+#
+# tensor=torch.from_numpy(np.array(b))
+# print(tensor)
+# print(tensor.shape)
+
 
 

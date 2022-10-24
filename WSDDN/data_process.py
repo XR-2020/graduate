@@ -2,7 +2,7 @@ import ssw
 import os
 import cv2
 import numpy
-data_path="./JPEGImages"
+data_path="./JPEGImages/"
 f = open('./ssw.txt','w')
 data_txt=open('annotations.txt', 'r')
 c=0

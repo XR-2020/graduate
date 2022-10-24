@@ -13,6 +13,8 @@ import os
 from tensorboardX import SummaryWriter
 import ssw
 
+
+#mean,std是x = (x - mean(x))/stddev(x)即x进行归一化时的均值和方差
 Transform = transforms.Compose([
     transforms.Resize([480, 480]),
     transforms.RandomHorizontalFlip(),
@@ -24,7 +26,11 @@ Transform = transforms.Compose([
 parser = argparse.ArgumentParser(description='wsddn Input:BatchSize initial LR EPOCH')
 parser.add_argument('--test','-t', action = 'store_true',
  help='set test mode')
-parser.add_argument('--model_path', type=str,default='./model_para',
+
+# parser.add_argument('--test','-t', action = 'store_true',default=True,
+#  help='set test mode')
+
+parser.add_argument('--model_path', type=str,default='model_para',
  help='dir to save para')
 parser.add_argument('--BATCH_SIZE', type=int,default=1,
  help='batch_size')
@@ -44,19 +50,20 @@ print('batch_size:',BATCH_SIZE)
 print('initial LR:',LR)
 print('epoch:',EPOCH)
 
-torch.cuda.set_device(args.GPU)
+# torch.cuda.set_device(args.GPU)
 net_wsddn = WSDDN('VGG11')
-if os.path.exists(os.path.join(model_path, 'wsddn.pkl')):
-    net_wsddn.load_state_dict(torch.load(os.path.join(model_path, 'wsddn.pkl')))
+if os.path.exists(os.path.join(model_path, 'model_para/wsddn.pkl')):
+    net_wsddn.load_state_dict(torch.load(os.path.join(model_path, 'model_para/wsddn.pkl')))
 else:
-    pretrained_dict = torch.load('vgg11_bn-6002323d.pth.1')
+    pretrained_dict = torch.load('vgg11_bn-6002323d.pth')
     modified_dict = net_wsddn.state_dict()
+    # 加载预训练模型,并去除需要再次训练的层
     pretrained_dict = {k: v for k, v in pretrained_dict.items() if k in modified_dict}
     modified_dict.update(pretrained_dict)
     net_wsddn.load_state_dict(modified_dict)
-net_wsddn.cuda()
+net_wsddn.cpu()
 
-criterion = nn.BCELoss(weight=None, size_average=True) 
+criterion = nn.BCELoss(weight=None, reduction='mean')
 optimizer1 = optim.SGD(net_wsddn.parameters(), lr = LR, momentum = 0.9)
 optimizer2 = optim.SGD(net_wsddn.parameters(), lr = 0.1 * LR, momentum = 0.9)
 writer = SummaryWriter('WSDDN')
@@ -66,7 +73,7 @@ testData = myDataSet('JPEGImages/' ,1, Transform)
 #print('trainData', len(trainData))
 #print('testData', len(testData))
 
-trainLoader = torch.utils.data.DataLoader(dataset=trainData, batch_size=BATCH_SIZE, shuffle=False,num_workers=1)
+trainLoader = torch.utils.data.DataLoader(dataset=trainData, batch_size=BATCH_SIZE, shuffle=False,num_workers=0)
 testLoader = torch.utils.data.DataLoader(dataset=testData, batch_size=BATCH_SIZE, shuffle=False)
 if not args.test:
     net_wsddn.train()
@@ -75,9 +82,9 @@ if not args.test:
         running_loss = 0.0
         print(epoch)
         for i, (images, kuang,labels) in enumerate(trainLoader):
-            images = Variable(images).cuda()
-            labels = Variable(labels).cuda()
-            kuang =Variable(kuang).cuda()
+            images = Variable(images).cpu()
+            labels = Variable(labels).cpu()
+            kuang =Variable(kuang).cpu()
             if epoch < 10:
                 optimizer1.zero_grad()
             else:
@@ -107,10 +114,10 @@ if not args.test:
                 print('[%d , %5d] loss: %.3f' % (epoch + 1 , i + 1 , running_loss / 500))
                 running_loss = 0.0
         writer.add_scalar('Train/loss', loss.item(),epoch)
-        torch.save(net_wsddn.state_dict(), os.path.join(model_path, 'wsddn.pkl'))
+        torch.save(net_wsddn.state_dict(), os.path.join(model_path, 'model_para/wsddn.pkl'))
     print('Finished Training')
     writer.close()
-    torch.save(net_wsddn.state_dict(), os.path.join(model_path, 'wsddn.pkl'))
+    torch.save(net_wsddn.state_dict(), os.path.join(model_path, 'model_para/wsddn.pkl'))
 else:
     ##UNFINISHED
     
@@ -118,14 +125,17 @@ else:
     result_name = 'box_result.txt'
     f = open(result_name, 'w')
     for i, (images, kuang, labels) in enumerate(testLoader):
-        images = Variable(images).cuda()
-        labels = Variable(labels).cuda()
-        kuang = Variable(kuang).cuda()
+        images = Variable(images).cpu()
+        labels = Variable(labels).cpu()
+        kuang = Variable(kuang).cpu()
         outputs_1, output_2, output_3 = net_wsddn(images,kuang)
+        print(outputs_1)
         for j in range(outputs_1.size(1)):
+            # if outputs_1[0, j] > 0.04:
             if outputs_1[0, j] > 0.05:
                 for k in range(output_2.size(0)):
-                    if output_2[0, k, j] > 0.1:
+                    # if output_2[0, k, j].item() > 0.01:
+                    if output_2[0, k, j].item() > 0.1:
                         #print(kuang.shape)
                         new_line = [i, j, float('%.3f' % output_3[0, k, j].item()), 8 * kuang[0, k, 0].item(), 
                                     8 * kuang[0, k, 1].item(), 8 * kuang[0, k, 2].item(), 8 * kuang[0, k, 3].item()]
@@ -146,7 +156,7 @@ else:
         #print('Localization Accuracy of the model on the train images(mAP): %.4f %%' % (100 * (vec_1*vec_2).sum()))
     f.close()
     data1 = open('box_result.txt', 'r')
-    data2 = open('bonus_ground_truth.txt', 'r')
+   # data2 = open('bonus_ground_truth.txt', 'r')
     #data3 = open('meiren/annotations.txt', 'r')
     f = open('for_map.txt', 'w')
     for line in data1:
@@ -169,7 +179,7 @@ else:
                 break
             c += 1
     data1.close()
-    data2.close()
+    # data2.close()
     #data3.close()
     f.close()
     '''
