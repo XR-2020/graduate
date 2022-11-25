@@ -1,0 +1,26 @@
+
+# Train/val/test sets as 1) dir: path/to/imgs, 2) file: path/to/imgs.txt, or 3) list: [path/to/imgs1, path/to/imgs2, ..]
+path: . # dataset root dir
+train: paper_data/det/train.txt  # train images (relative to 'path') 118287 images
+val: paper_data/det/val.txt  # train images (relative to 'path') 5000 images
+road_seg_train: paper_data/seg/images/train   # road segmentation data
+road_seg_val: paper_data/seg/images/val
+
+# Classes
+nc: 5  # number of classes
+segnc: 5
+
+#names: ['aeroplane', 'bicycle', 'bird', 'boat',
+#           'bottle', 'bus', 'car', 'cat', 'chair',
+#           'cow', 'diningtable', 'dog', 'horse',
+#           'motorbike', 'person', 'pottedplant',
+#           'sheep', 'sofa', 'train', 'tvmonitor']  # class names
+#
+#segnames: ['aeroplane', 'bicycle', 'bird', 'boat',
+#           'bottle', 'bus', 'car', 'cat', 'chair',
+#           'cow', 'diningtable', 'dog', 'horse',
+#           'motorbike', 'person', 'pottedplant',
+#           'sheep', 'sofa', 'train', 'tvmonitor']
+names: ['aeroplane', 'person', 'tvmonitor', 'train', 'boat']  # class names
+
+segnames: ['aeroplane', 'person', 'tvmonitor', 'train', 'boat']
