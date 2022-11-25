@@ -1,4 +1,0 @@
-E:\python\yolov5ds\paper_data\det/images/000032.png
-E:\python\yolov5ds\paper_data\det/images/000033.png
-E:\python\yolov5ds\paper_data\det/images/000042.png
-E:\python\yolov5ds\paper_data\det/images/000061.png
