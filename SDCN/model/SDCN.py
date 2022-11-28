@@ -22,18 +22,29 @@ class SDCN(nn.Module):
 
     def forward(self, x):
         image = x  # (1,3,512,512)
+        # fE 特征提取器
         feature = self.fE(x)  # VGG16 提取特征 (1,512,32,32)
+        # fD 检测分支
+        ssw_spp = torch.zeros(1, 10, 4)
+        for i in range(1):
+            for j in range(10):
+                ssw_spp[i, j, 0] = 0
+                ssw_spp[i, j, 1] = 0
+                ssw_spp[i, j, 2] = 4
+                ssw_spp[i, j, 3] = 4
+        dm,dr=self.fD(feature,ssw_spp)
+
+        # fE分割分支
         s = self.fS(feature)  # 获取分割图   (1,21,512,512)
-        s=torch.randn(1,21,512,512)
-        cls_s = s/255
-        for i in range(1,s.shape[1]):
-            mask = cls_s[:, i, :, :] * image
-            c = self.fC(mask)
-            print(c)
+        mask = s * image  #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        c = self.fC(mask)
+
+        # 协作模块
+        dseg = torch.randn(10,21)
+        d_m = dm * dseg
 
 
-
-        return s
+        return 0
 
     def make_layers(self, cfg):  # init VGG
         layers = []
@@ -50,10 +61,11 @@ class SDCN(nn.Module):
 
 
 if __name__ == '__main__':
-    img = Image.open("000001.jpg")
-    img=Image.new('RGB', (512, 512), (0, 0, 0))
-    transf = transforms.ToTensor()
-    img_tensor = transf(img)  # tensor数据格式是torch(C,H,W)
-    img_tensor=torch.unsqueeze(img_tensor,0)
+    # img = Image.open("000001.jpg")
+    # img=Image.new('RGB', (512, 512), (0, 0, 0))
+    # transf = transforms.ToTensor()
+    # img_tensor = transf(img)  # tensor数据格式是torch(C,H,W)
+    # img_tensor=torch.unsqueeze(img_tensor,0)
+    img_tensor=torch.randint(0,255,(1,3,512,512))/1.
     net = SDCN()
-    print(net(img_tensor).shape)
+    print(net(img_tensor))

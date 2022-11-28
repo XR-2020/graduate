@@ -58,7 +58,8 @@ class Cls(nn.Module):
         self.conv5 = self._make_layer(1024, (512, 512, 2048), Layers[3], 2)
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
         self.fc = nn.Sequential(
-            nn.Linear(2048, num_classes)
+            nn.Linear(2048, num_classes),
+            nn.Softmax(dim=1)
         )
 
     def forward(self, input):

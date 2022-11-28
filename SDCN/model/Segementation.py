@@ -23,7 +23,7 @@ class Seg(nn.Module):#init seg
 
         self.c5 = Conv(32, 21)
         # 归一化
-        self.Th = torch.nn.Softmax(dim=0)
+        self.Th = torch.nn.Softmax(dim=1)
 
     def forward(self, x):
         x = self.c1(x)
