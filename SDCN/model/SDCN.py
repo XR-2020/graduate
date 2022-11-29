@@ -1,4 +1,5 @@
 import torch.nn
+import torchvision
 from PIL import Image
 from torch import nn
 from Segementation import Seg
@@ -20,28 +21,38 @@ class SDCN(nn.Module):
         self.fC = Cls(21)
         self.fD = Dec()
 
-    def forward(self, x):
+    def forward(self, x,ssw):
         image = x  # (1,3,512,512)
         # fE 特征提取器
         feature = self.fE(x)  # VGG16 提取特征 (1,512,32,32)
+
         # fD 检测分支
-        ssw_spp = torch.zeros(1, 10, 4)
-        for i in range(1):
-            for j in range(10):
-                ssw_spp[i, j, 0] = 0
-                ssw_spp[i, j, 1] = 0
-                ssw_spp[i, j, 2] = 4
-                ssw_spp[i, j, 3] = 4
-        dm,dr=self.fD(feature,ssw_spp)
+        dm,dr=self.fD(feature,ssw)
 
         # fE分割分支
         s = self.fS(feature)  # 获取分割图   (1,21,512,512)
-        mask = s * image  #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        c = self.fC(mask)
+        # mask = s * image  #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        # c = self.fC(mask)
 
         # 协作模块
-        dseg = torch.randn(10,21)
-        d_m = dm * dseg
+        max_pro = ssw[:, 1, :]
+        ssw = torch.squeeze(ssw, dim=0)
+        # 计算所有proposal与得分最高的proposal的iou，torchvision.ops.box_iou数据格式（（N，4），(N，4)）
+        iou = torchvision.ops.box_iou(max_pro, ssw)
+        print(iou)
+        # 转置iou结果
+        iou = iou.transpose(0, 1)
+        # 交集>0.5会被认为高度重叠，置为1，其余为0,
+        iou[iou > 0.5] = 1
+        iou[iou < 0.5] = 0
+        # 将结果复制20（类别数）份，这样得分最高的proposal以及和它有着高度重叠的proposal也将设为1
+        iou = iou.repeat(1, 20)
+        # 改变原先的proposal的class
+        new_scores = torch.mul(dr, iou)
+        print(new_scores)
+
+        # dseg = torch.randn(10,21)
+        # d_m = dm * dseg
 
 
         return 0
@@ -66,6 +77,13 @@ if __name__ == '__main__':
     # transf = transforms.ToTensor()
     # img_tensor = transf(img)  # tensor数据格式是torch(C,H,W)
     # img_tensor=torch.unsqueeze(img_tensor,0)
-    img_tensor=torch.randint(0,255,(1,3,512,512))/1.
+    img_tensor= torch.randn(1, 3, 224, 224)
+    ssw_spp = torch.zeros(1, 10, 4)
+    for i in range(1):
+        for j in range(10):
+            ssw_spp[i, j, 0] = 0
+            ssw_spp[i, j, 1] = 0
+            ssw_spp[i, j, 2] = j + 4
+            ssw_spp[i, j, 3] = j + 4
     net = SDCN()
-    print(net(img_tensor))
+    print(net(img_tensor,ssw_spp))
