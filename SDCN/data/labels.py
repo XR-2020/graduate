@@ -51,7 +51,7 @@ def class_to_num (classname):
 
 for root, dirs, files in os.walk(find_path):
     for file in files:
-        one_hot=[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+        one_hot=[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
         raw=file[:-4]+" "
         one_hot_raw=raw
         input_file = find_path + file
@@ -65,7 +65,7 @@ for root, dirs, files in os.walk(find_path):
             else:
                 raw = raw + str(num) +" "
                 one_hot[num-1] =1
-        out.write(one_hot_raw+" "+str(one_hot).replace('[',"").replace("]","")+'\n')
+        out.write(one_hot_raw+" "+str(one_hot).replace('[',"").replace("]","").replace(','," ")+'\n')
 
 
 

@@ -12,8 +12,8 @@ class Dec(nn.Module):#init Dec
 
         self.fc6 = nn.Linear(4096, 4096)
         self.fc7 = nn.Linear(4096, 4096)
-        self.fc8c = nn.Linear(4096, 20)
-        self.fc8d = nn.Linear(4096, 20)
+        self.fc8c = nn.Linear(4096, 21)
+        self.fc8d = nn.Linear(4096, 21)
 
     def forward(self, x, ssw_get):
         x = self.through_spp_new(x, ssw_get)
@@ -21,10 +21,12 @@ class Dec(nn.Module):#init Dec
         x = F.relu(self.fc7(x))
         x_c = F.relu(self.fc8c(x))
         x_d = F.relu(self.fc8d(x))
-        segma_c = F.softmax(x_c, dim=2)  # 按类别softmax
-        segma_d = F.softmax(x_d, dim=1)  # 按proposal进行softmax
+        dr = F.softmax(x_c, dim=2)  # 按class进行softmax
+        dm = F.softmax(x_d, dim=1)  # 按proposal进行softmax
+        dm = dr * dm
+        score = torch.sum(dm, dim=1)
 
-        return segma_d, segma_c
+        return dm, dr,score
 
     def through_spp_new(self, x,ssw):  # x.shape = [BATCH_SIZE, 512, 14, 14] ssw_get.shape = [BATCH_SIZE, R, 4] y.shape = [BATCH_SIZE, R, 4096]
         for i in range(1):

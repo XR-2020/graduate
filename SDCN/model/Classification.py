@@ -59,7 +59,7 @@ class Cls(nn.Module):
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
         self.fc = nn.Sequential(
             nn.Linear(2048, num_classes),
-            nn.Softmax(dim=1)
+            nn.Sigmoid()
         )
 
     def forward(self, input):
