@@ -76,7 +76,7 @@ class SDCN(nn.Module):
         """
         # Detection 指导 Segmentation
         # 初始化S_det,全黑
-        S_det=torch.zeros(10,x.shape[2],x.shape[3])
+        S_det=torch.zeros(21,x.shape[2],x.shape[3])
 
 
         # Segmentation 指导 Detection  
